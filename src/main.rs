@@ -1,11 +1,14 @@
 mod model;
 mod data;
 mod training;
+use crate::training::TrainingConfig;
 use crate::model::Model;
 use burn::{
+    backend::Autodiff,
+    optim::AdamConfig,
     nn::{
-        conv::{Conv2dConfig},
-        pool::{AdaptiveAvgPool2dConfig},
+        conv::Conv2dConfig,
+        pool::AdaptiveAvgPool2dConfig,
         DropoutConfig, LinearConfig, Relu,
     },
 };
@@ -39,13 +42,26 @@ impl ModelConfig {
     }
 }
 
+// fn main() {
+//     type MyBackend = Wgpu<f32, i32>;
+//
+//     let device = Default::default();
+//     let config = ModelConfig::new(10, 512).with_dropout(0.5);
+//     let model = config.init::<MyBackend>(&device);
+//
+//
+//     println!("{}", model);
+// }
+
 fn main() {
     type MyBackend = Wgpu<f32, i32>;
+    type MyAutodiffBackend = Autodiff<MyBackend>;
 
-    let device = Default::default();
-    let config = ModelConfig::new(10, 512).with_dropout(0.5);
-    let model = config.init::<MyBackend>(&device);
-
-
-    println!("{}", model);
+    let device = burn::backend::wgpu::WgpuDevice::default();
+    let artifact_dir = "/tmp/guide";
+    crate::training::train::<MyAutodiffBackend>(
+        artifact_dir,
+        TrainingConfig::new(ModelConfig::new(10, 512), AdamConfig::new()),
+        device.clone(),
+    );
 }
