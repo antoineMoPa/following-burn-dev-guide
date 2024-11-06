@@ -1,4 +1,6 @@
 mod model;
+mod data;
+mod training;
 use crate::model::Model;
 use burn::{
     nn::{
@@ -41,9 +43,9 @@ fn main() {
     type MyBackend = Wgpu<f32, i32>;
 
     let device = Default::default();
-    let mut config = ModelConfig::new(10, 512).with_dropout(0.5);
+    let config = ModelConfig::new(10, 512).with_dropout(0.5);
     let model = config.init::<MyBackend>(&device);
 
 
-    println!("{}", config);
+    println!("{}", model);
 }
