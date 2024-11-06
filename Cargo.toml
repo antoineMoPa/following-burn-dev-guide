@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 burn = { version = "~0.15", features = ["train", "wgpu", "vision"] }
+derive_builder = "0.20.2"

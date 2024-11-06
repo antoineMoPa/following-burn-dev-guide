@@ -12,8 +12,9 @@ use burn::{
     config::Config,
     prelude::Backend,
 };
+use derive_builder::Builder;
 
-#[derive(Config, Debug)]
+#[derive(Config, Debug, Builder)]
 pub struct ModelConfig {
     num_classes: usize,
     hidden_size: usize,
@@ -40,7 +41,9 @@ fn main() {
     type MyBackend = Wgpu<f32, i32>;
 
     let device = Default::default();
-    let model = ModelConfig::new(10, 512).init::<MyBackend>(&device);
+    let mut config = ModelConfig::new(10, 512).with_dropout(0.5);
+    let model = config.init::<MyBackend>(&device);
 
-    println!("{}", model);
+
+    println!("{}", config);
 }
