@@ -1,21 +1,20 @@
 mod model;
 mod data;
 mod training;
+mod inference;
+use std::path::Path;
 use crate::training::TrainingConfig;
 use crate::model::Model;
 use burn::{
-    backend::Autodiff,
+    backend::{Autodiff,Wgpu},
     optim::AdamConfig,
     nn::{
         conv::Conv2dConfig,
         pool::AdaptiveAvgPool2dConfig,
         DropoutConfig, LinearConfig, Relu,
     },
-};
-use burn::{
-    backend::Wgpu,
-    config::Config,
-    prelude::Backend,
+    prelude::{Backend,Config},
+    data::dataloader::Dataset,
 };
 use derive_builder::Builder;
 
@@ -59,9 +58,22 @@ fn main() {
 
     let device = burn::backend::wgpu::WgpuDevice::default();
     let artifact_dir = "/tmp/guide";
-    crate::training::train::<MyAutodiffBackend>(
+
+    // Train only if not yet trained
+    let model_path = Path::new(artifact_dir).join("model.mpk");
+    if !model_path.exists() {
+        crate::training::train::<MyAutodiffBackend>(
+            artifact_dir,
+            TrainingConfig::new(ModelConfig::new(10, 512), AdamConfig::new()),
+            device.clone(),
+        );
+    }
+
+    crate::inference::infer::<MyBackend>(
         artifact_dir,
-        TrainingConfig::new(ModelConfig::new(10, 512), AdamConfig::new()),
-        device.clone(),
+        device,
+        burn::data::dataset::vision::MnistDataset::test()
+            .get(1)
+            .unwrap(),
     );
 }
